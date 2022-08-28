@@ -24,4 +24,21 @@ class User
     {
         return "Юзер $this->id с именем $this->username и логином $this->login" . PHP_EOL;
     }
+
+    /**
+     * @return int
+     */
+    public function id(): int
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param int $id
+     */
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
+
 }

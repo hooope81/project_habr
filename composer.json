@@ -1,0 +1,17 @@
+{
+    "name": "geekbrains/leveltwo",
+    "autoload": {
+        "psr-4": {
+            "GeekBrains\\LevelTwo\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "hooope81",
+            "email": "hooope81@gmail.com"
+        }
+    ],
+    "require": {
+        "fakerphp/faker": "^1.20"
+    }
+}
