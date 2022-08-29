@@ -1,9 +1,10 @@
 <?php
+use GeekBrains\LevelTwo\Person\{Name, Person};
+use GeekBrains\LevelTwo\Blog\Repositories\{Post, User, InMemoryUsersRepository};
 use GeekBrains\LevelTwo\Blog\Exceptions\UserNotFoundException;
-use GeekBrains\LevelTwo\Blog\{Comments, Post, User};
-use GeekBrains\LevelTwo\Blog\Repositories\InMemoryUsersRepository;
 
 include __DIR__ . "/vendor/autoload.php";
+
 //spl_autoload_register('load');
 //
 //function load($className): void
@@ -16,16 +17,17 @@ include __DIR__ . "/vendor/autoload.php";
 //    }
 //}
 
+$name = new Name ('Mary', 'Smith');
+$person = new Person ($name, new DateTimeImmutable());
+$user = new User (1, $name, 'mary111');
+$post = new Post(1, $person, 'hi!');
+
 $faker = Faker\Factory::create('ru_RU');
-$firstName = $faker->firstName;
-$lastName = $faker->lastName;
+echo $faker->name() . PHP_EOL;
+echo $faker->realText(rand(100, 200)) . PHP_EOL;
 
-$user = new User($argv[1], $firstName, $lastName);
-$post = new Post(1, $user, $faker->realText(rand(10, 15)), $faker->realText(rand(100, 200)));
-$comment = new Comments(1,$user, $post, $faker->realText(rand(10, 30)));
-
+echo $user;
 echo $post;
-echo $comment;
 
 $userRepository = new InMemoryUsersRepository();
 try {
