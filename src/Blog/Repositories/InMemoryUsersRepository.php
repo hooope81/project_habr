@@ -1,9 +1,7 @@
 <?php
-
 namespace GeekBrains\LevelTwo\Blog\Repositories;
-
 use GeekBrains\LevelTwo\Blog\Exceptions\UserNotFoundException;
-use GeekBrains\LevelTwo\Blog\Repositories\User;
+use GeekBrains\LevelTwo\Blog\User;
 
 class InMemoryUsersRepository
 {
@@ -14,10 +12,13 @@ class InMemoryUsersRepository
         $this->users[] = $user;
     }
 
+    /**
+     * @throws UserNotFoundException
+     */
     public function get(int $id): User
     {
         foreach ($this->users as $user) {
-            if ($user->id() === $id) {
+            if ($user->getIdUser() === $id) {
                 return $user;
             }
         }
