@@ -1,7 +1,8 @@
 <?php
+
 namespace GeekBrains\LevelTwo\Blog\Exceptions;
 
-class AppException extends \Exception
+class InvalidArgumentException extends AppException
 {
 
 }

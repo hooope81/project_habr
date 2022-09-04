@@ -1,39 +1,43 @@
 <?php
-use GeekBrains\LevelTwo\Person\{Name, Person};
-use GeekBrains\LevelTwo\Blog\Repositories\{Post, User, InMemoryUsersRepository};
-use GeekBrains\LevelTwo\Blog\Exceptions\UserNotFoundException;
+
+use GeekBrains\LevelTwo\Blog\{Command\Arguments,
+    Command\CreateUserCommand,
+    Comment,
+    Exceptions\AppException,
+    Post,
+    Repositories\CommentsRepository\SqliteCommentsRepository,
+    Repositories\PostsRepository\SqlitePostsRepository,
+    UUID};
+use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\SqliteUsersRepository;
 
 include __DIR__ . "/vendor/autoload.php";
 
-//spl_autoload_register('load');
-//
-//function load($className): void
-//{
-//    $file = $className . ".php";
-//    $file = str_replace('GeekBrains\LevelTwo', 'src', $file);
-//    $file = str_replace('\\', '/', $file);
-//    if (file_exists($file)) {
-//        include $file;
-//    }
-//}
+$userRepository = new SqliteUsersRepository(
+    new PDO('sqlite:' . __DIR__ . '/blog.sqlite')
+);
+$command = new CreateUserCommand($userRepository);
 
-$name = new Name ('Mary', 'Smith');
-$person = new Person ($name, new DateTimeImmutable());
-$user = new User (1, $name, 'mary111');
-$post = new Post(1, $person, 'hi!');
-
-$faker = Faker\Factory::create('ru_RU');
-echo $faker->name() . PHP_EOL;
-echo $faker->realText(rand(100, 200)) . PHP_EOL;
-
-echo $user;
-echo $post;
-
-$userRepository = new InMemoryUsersRepository();
 try {
-    $userRepository->save($user);
-    echo $userRepository->get(1);
-    echo $userRepository->get(2);
-} catch (UserNotFoundException $e) {
-    echo $e->getMessage();
+    $command->handle(Arguments::fromArgv($argv));
+} catch (AppException $e) {
+    echo "{$e->getMessage()}\n";
 }
+
+try {
+    $user = $userRepository->get(new UUID('1c07ad19-0974-40f6-8997-e0466140e4b4'));
+    $post = new Post(UUID::random(), $user, 'опять осень', 'я календарь переверну, и снова третье сентябряяя');
+    $postRepository = new SqlitePostsRepository(
+        new PDO('sqlite:' . __DIR__ . '/blog.sqlite')
+    );
+    $post2 = $postRepository->get(new UUID('2828a5e4-fd13-4160-9ed9-16fc695a5d07'));
+    $user2 = $userRepository->get(new UUID('66d19285-a096-4373-bd61-4f6ca6eb8fdd'));
+    $comment = new Comment(UUID::random(),$user2, $post2, 'да-да');
+    $commentRepository = new SqliteCommentsRepository(
+        new PDO('sqlite:' . __DIR__ . '/blog.sqlite')
+    );
+    $commentRepository->save($comment);
+    echo $commentRepository->get(new UUID('986dbfb0-42e4-4d07-af4b-74601cffb3eb'));
+} catch (AppException $e) {
+    echo "{$e->getMessage()}\n";
+}
+
