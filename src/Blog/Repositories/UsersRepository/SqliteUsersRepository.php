@@ -24,10 +24,11 @@ class SqliteUsersRepository implements UsersRepositoryInterface
                 VALUES (:first_name, :last_name, :uuid, :login)'
         );
         $statement->execute([
-            'first_name' => $user->getName()->getFirstName(),
-            'last_name' => $user->getName()->getLastName(),
-            'uuid' => $user->getUuid(),
-            'login' => $user->getLogin()
+
+                'first_name' => $user->getName()->getFirstName(),
+                'last_name' => $user->getName()->getLastName(),
+                'uuid' => $user->getUuid(),
+                'login' => $user->getLogin()
         ]);
     }
 
@@ -64,8 +65,15 @@ class SqliteUsersRepository implements UsersRepositoryInterface
         $statement->execute([
             'login' => $login
         ]);
+        $result = $statement->fetch(PDO::FETCH_ASSOC);
 
-        return $this->getUser($statement, $login);
+        if ($result === false) {
+            throw new UserNotFoundException(
+                "Cannot get user: $login"
+            );
+        }
+        $uuid = new UUID($result['uuid']);
+        return $this->getUser($result, $uuid);
     }
 
     /**
