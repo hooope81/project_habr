@@ -72,13 +72,12 @@ class SqlitePostsRepositoryTest extends TestCase
 
         $statementMock->method('fetch')->willReturn([
             'uuid' => '2828a5e4-fd13-4160-9ed9-16fc695a5d07',
-            'author__uuid' => '1c07ad19-0974-40f6-8997-e0466140e4b4',
             'title' => 'опять осень',
             'text' => 'я календарь переверну, и снова третье сентябряяя',
             'first_name' => 'Ivan',
             'last_name' => 'Nikitin',
-            'login' => 'Ivan07'
-
+            'login' => 'Ivan07',
+            'user_uuid' => '1c07ad19-0974-40f6-8997-e0466140e4b4'
         ]);
         $connectionStub->method('prepare')->willReturn($statementMock);
 
