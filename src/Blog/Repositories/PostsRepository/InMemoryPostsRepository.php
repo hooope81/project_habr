@@ -27,4 +27,9 @@ class InMemoryPostsRepository implements PostsRepositoryInterface
         }
         throw new PostNotFoundException("Post not found: $uuid");
     }
+
+    public function delete(string $uuid): void
+    {
+
+    }
 }

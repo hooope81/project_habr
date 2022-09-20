@@ -72,14 +72,15 @@ class SqliteCommentsRepositoryTest extends TestCase
         $statementMock = $this->createMock(PDOStatement::class);
 
         $statementMock->method('fetch')->willReturn([
-            'uuid' => '986dbfb0-42e4-4d07-af4b-74601cffb3eb',
-            'author__uuid' => '1c07ad19-0974-40f6-8997-e0466140e4b4',
-            'post__uuid' => '2828a5e4-fd13-4160-9ed9-16fc695a5d07',
-            'text' => 'да-да',
+            'comment_uuid' => '986dbfb0-42e4-4d07-af4b-74601cffb3eb',
+            'user_uuid' => '1c07ad19-0974-40f6-8997-e0466140e4b4',
+            'post_uuid' => '2828a5e4-fd13-4160-9ed9-16fc695a5d07',
+            'comment_text' => 'да-да',
             'title' => 'опять осень',
             'first_name' => 'Ivan',
             'last_name' => 'Nikitin',
             'login' => 'Ivan07',
+            'post_text' => 'some text'
         ]);
         $connectionStub->method('prepare')->willReturn($statementMock);
         $commentRepository = new SqliteCommentsRepository($connectionStub);
