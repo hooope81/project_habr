@@ -14,6 +14,7 @@ use GeekBrains\LevelTwo\Http\ErrorResponse;
 use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\Response;
 use GeekBrains\LevelTwo\Http\SuccessResponse;
+use PDOException;
 
 class CreatePost implements ActionInterface
 {
@@ -33,7 +34,7 @@ class CreatePost implements ActionInterface
 
         try {
             $user = $this->usersRepository->get($authorUuid);
-        } catch (UserNotFoundException $e) {
+        } catch (PDOException $e) {
             return new ErrorResponse($e->getMessage());
         }
 

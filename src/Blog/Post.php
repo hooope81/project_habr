@@ -1,6 +1,5 @@
 <?php
 namespace GeekBrains\LevelTwo\Blog;
-use GeekBrains\LevelTwo\Blog\User;
 
 class Post
 {
