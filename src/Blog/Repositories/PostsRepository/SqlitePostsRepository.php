@@ -38,7 +38,13 @@ class SqlitePostsRepository implements PostsRepositoryInterface
     public function get(UUID $uuid): Post
     {
         $statement = $this->connection->prepare(
-            'SELECT posts.uuid AS post_uuid, posts.title, posts.text, users.uuid AS user_uuid, users.login, users.first_name, users.last_name
+            'SELECT posts.uuid AS post_uuid, 
+                    posts.title, 
+                    posts.text, 
+                    users.uuid AS user_uuid, 
+                    users.login, 
+                    users.first_name, 
+                    users.last_name
             FROM posts
             JOIN users ON users.uuid = posts.author__uuid
             WHERE posts.uuid = :uuid'
@@ -67,12 +73,6 @@ class SqlitePostsRepository implements PostsRepositoryInterface
             $result['text']
         );
     }
-
-//    public function getUserForPost(string $author__uuid): User
-//    {
-//        $sqliteUsersRepository = new SqliteUsersRepository($this->connection);
-//        return $sqliteUsersRepository->get(new UUID($author__uuid));
-//    }
 
     public function delete(string $uuid): void {
         $statement = $this->connection->prepare(

@@ -80,7 +80,11 @@ class SqliteCommentsRepositoryTest extends TestCase
             'first_name' => 'Ivan',
             'last_name' => 'Nikitin',
             'login' => 'Ivan07',
-            'post_text' => 'some text'
+            'post_text' => 'some text',
+            'user_uuid_comment' => '1c07ad19-0974-40f6-8997-e0466140e4b4',
+            'user_first_name_comment' => 'Anna',
+            'user_last_name_comment' => 'Petrova',
+            'user_login_comment' => 'An8'
         ]);
         $connectionStub->method('prepare')->willReturn($statementMock);
         $commentRepository = new SqliteCommentsRepository($connectionStub);

@@ -10,6 +10,7 @@ use GeekBrains\LevelTwo\Http\ErrorResponse;
 use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\Response;
 use GeekBrains\LevelTwo\Http\SuccessResponse;
+use PDOException;
 
 class FindByLogin implements ActionInterface
 {
@@ -27,7 +28,7 @@ class FindByLogin implements ActionInterface
         }
         try {
             $user = $this->usersRepository->getByLogin($login);
-        } catch (UserNotFoundException $e) {
+        } catch (PDOException $e) {
             return new ErrorResponse($e->getMessage());
         }
         return new SuccessResponse([

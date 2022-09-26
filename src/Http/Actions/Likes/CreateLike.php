@@ -1,13 +1,12 @@
 <?php
 
-namespace GeekBrains\LevelTwo\Http\Actions\Comments;
+namespace GeekBrains\LevelTwo\Http\Actions\Likes;
 
-use GeekBrains\LevelTwo\Blog\Comment;
 use GeekBrains\LevelTwo\Blog\Exceptions\HttpException;
 use GeekBrains\LevelTwo\Blog\Exceptions\InvalidArgumentException;
-use GeekBrains\LevelTwo\Blog\Exceptions\PostNotFoundException;
-use GeekBrains\LevelTwo\Blog\Exceptions\UserNotFoundException;
-use GeekBrains\LevelTwo\Blog\Repositories\CommentsRepository\CommentsRepositoryInterface;
+use GeekBrains\LevelTwo\Blog\Exceptions\LikeIsAlreadyBeenCreated;
+use GeekBrains\LevelTwo\Blog\Like;
+use GeekBrains\LevelTwo\Blog\Repositories\LikesRepository\LikesRepositoryInterface;
 use GeekBrains\LevelTwo\Blog\Repositories\PostsRepository\PostsRepositoryInterface;
 use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\UsersRepositoryInterface;
 use GeekBrains\LevelTwo\Blog\UUID;
@@ -18,33 +17,31 @@ use GeekBrains\LevelTwo\Http\Response;
 use GeekBrains\LevelTwo\Http\SuccessResponse;
 use PDOException;
 
-class CreateCommit implements ActionInterface
+class CreateLike implements ActionInterface
 {
-
     public function __construct(
-
-        private UsersRepositoryInterface $usersRepository,
         private PostsRepositoryInterface $postsRepository,
-        private CommentsRepositoryInterface $commentsRepository
-    ) {
+        private UsersRepositoryInterface $usersRepository,
+        private LikesRepositoryInterface $likesRepository
+    ){
     }
 
     public function handle(Request $request): Response
     {
         try {
-            $authorUuid = new UUID($request->jsonBodyField('author_uuid'));
+            $userUuid = new UUID($request->query('user_uuid'));
         } catch (HttpException | InvalidArgumentException $e) {
             return new ErrorResponse($e->getMessage());
         }
 
         try {
-            $user = $this->usersRepository->get($authorUuid);
+            $user = $this->usersRepository->get($userUuid);
         } catch (PDOException $e) {
             return new ErrorResponse($e->getMessage());
         }
 
         try {
-            $postUuid = new UUID($request->jsonBodyField('post_uuid'));
+            $postUuid = new UUID($request->query('post_uuid'));
         } catch (HttpException | InvalidArgumentException $e) {
             return new ErrorResponse($e->getMessage());
         }
@@ -55,23 +52,27 @@ class CreateCommit implements ActionInterface
             return new ErrorResponse($e->getMessage());
         }
 
-        $newCommentUuid = UUID::random();
+        $newLikeUuid = UUID::random();
 
         try {
-            $comment = new Comment(
-                $newCommentUuid,
-                $user,
+            $like = new Like(
+                $newLikeUuid,
                 $post,
-                $request->jsonBodyField('text')
+                $user
             );
-        } catch (HttpException $e) {
+        } catch (PDOException $e) {
             return new ErrorResponse($e->getMessage());
         }
 
-        $this->commentsRepository->save($comment);
+        try {
+            $this->likesRepository->checkLike($userUuid, $postUuid);
+        } catch (PDOException $e){
+            return new ErrorResponse($e->getMessage());
+        }
 
-        return new SuccessResponse([
-            'uuid' => (string) $newCommentUuid
+        $this->likesRepository->save($like);
+        return  new SuccessResponse([
+            'uuid' => (string) $newLikeUuid
         ]);
     }
 }
