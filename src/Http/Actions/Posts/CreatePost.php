@@ -2,6 +2,7 @@
 
 namespace GeekBrains\LevelTwo\Http\Actions\Posts;
 
+use GeekBrains\LevelTwo\Blog\Exceptions\AuthException;
 use GeekBrains\LevelTwo\Blog\Exceptions\HttpException;
 use GeekBrains\LevelTwo\Blog\Exceptions\InvalidArgumentException;
 use GeekBrains\LevelTwo\Blog\Exceptions\UserNotFoundException;
@@ -10,31 +11,31 @@ use GeekBrains\LevelTwo\Blog\Repositories\PostsRepository\PostsRepositoryInterfa
 use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\UsersRepositoryInterface;
 use GeekBrains\LevelTwo\Blog\UUID;
 use GeekBrains\LevelTwo\Http\Actions\ActionInterface;
+use GeekBrains\LevelTwo\Http\Auth\IdentificationInterface;
 use GeekBrains\LevelTwo\Http\ErrorResponse;
 use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\Response;
 use GeekBrains\LevelTwo\Http\SuccessResponse;
 use PDOException;
+use Psr\Log\LoggerInterface;
 
 class CreatePost implements ActionInterface
 {
     public function __construct(
         private PostsRepositoryInterface $postsRepository,
-        private UsersRepositoryInterface $usersRepository
+        private IdentificationInterface $identification,
+        private LoggerInterface $logger
     ) {
     }
 
     public function handle(Request $request): Response
     {
         try {
-            $authorUuid = new UUID($request->jsonBodyField('author_uuid'));
-        } catch (HttpException | InvalidArgumentException $e) {
-            return new ErrorResponse($e->getMessage());
-        }
-
-        try {
-            $user = $this->usersRepository->get($authorUuid);
-        } catch (PDOException $e) {
+            $user = $this->identification->user($request);
+        } catch (AuthException $e) {
+            $this->logger->warning(
+                "Cannot get user"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
@@ -48,10 +49,15 @@ class CreatePost implements ActionInterface
                 $request->jsonBodyField('text')
             );
         } catch (HttpException $e) {
+            $this->logger->warning(
+                "Cannot get post"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
         $this->postsRepository->save($post);
+
+        $this->logger->info("Post created: $newPostUuid");
 
         return new SuccessResponse([
            'uuid' => (string) $newPostUuid

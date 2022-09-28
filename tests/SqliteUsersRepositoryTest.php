@@ -2,6 +2,7 @@
 
 namespace GeekBrains\LevelTwo;
 
+use GeekBrains\Blog\UnitTests\DummyLogger;
 use GeekBrains\LevelTwo\Blog\Exceptions\UserNotFoundException;
 use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\SqliteUsersRepository;
 use GeekBrains\LevelTwo\Blog\{Exceptions\InvalidArgumentException, UUID, User, Name};
@@ -24,7 +25,7 @@ class SqliteUsersRepositoryTest extends TestCase
         $statementStub->method('fetch')->willReturn(false);
         $connectionStub->method('prepare')->willReturn($statementStub);
 
-        $repository = new SqliteUsersRepository($connectionStub);
+        $repository = new SqliteUsersRepository($connectionStub, new DummyLogger());
 
         $this->expectException(UserNotFoundException::class);
         $this->expectExceptionMessage("Cannot get user: Ivan07");
@@ -47,7 +48,7 @@ class SqliteUsersRepositoryTest extends TestCase
             ]);
 
         $connectionStub->method('prepare')->willReturn($statementMock);
-        $repository = new SqliteUsersRepository($connectionStub);
+        $repository = new SqliteUsersRepository($connectionStub, new DummyLogger());
         $repository->save(
             new User(
                 new UUID('66d19285-a096-4373-bd61-4f6ca6eb8fdd'),

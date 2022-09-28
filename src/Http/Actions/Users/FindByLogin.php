@@ -11,11 +11,13 @@ use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\Response;
 use GeekBrains\LevelTwo\Http\SuccessResponse;
 use PDOException;
+use Psr\Log\LoggerInterface;
 
 class FindByLogin implements ActionInterface
 {
     public function __construct(
-        private readonly UsersRepositoryInterface $usersRepository
+        private readonly UsersRepositoryInterface $usersRepository,
+        private LoggerInterface $logger
     )  {
     }
 
@@ -24,13 +26,20 @@ class FindByLogin implements ActionInterface
         try {
             $login = $request->query('login');
         } catch (HttpException $e) {
+            $this->logger->warning(
+                "Cannot get login"
+            );
             return new ErrorResponse($e->getMessage());
         }
         try {
             $user = $this->usersRepository->getByLogin($login);
-        } catch (PDOException $e) {
+        } catch (UserNotFoundException $e) {
+            $this->logger->warning(
+                "Cannot get user"
+            );
             return new ErrorResponse($e->getMessage());
         }
+        $this->logger->info("User found: $login");
         return new SuccessResponse([
             'login' => $user->getLogin(),
             'name' => $user->getName()->getFirstName() . ' ' . $user->getName()->getLastName()

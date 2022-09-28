@@ -10,11 +10,13 @@ use GeekBrains\LevelTwo\Blog\Post;
 use GeekBrains\LevelTwo\Blog\User;
 use GeekBrains\LevelTwo\Blog\UUID;
 use PDO;
+use Psr\Log\LoggerInterface;
 
 class SqliteCommentsRepository implements CommentsRepositoryInterface
 {
     public function __construct(
-        private PDO $connection
+        private PDO $connection,
+        private LoggerInterface $logger
     )
     {
     }
@@ -25,12 +27,15 @@ class SqliteCommentsRepository implements CommentsRepositoryInterface
             'INSERT INTO comments (uuid, author__uuid, post__uuid, text) 
                  VALUES (:uuid, :author__uuid, :post__uuid, :text)'
         );
+        $uuid = $comment->getUuid();
         $statement->execute([
-            'uuid' => $comment->getUuid(),
+            'uuid' => $uuid,
             'author__uuid' => $comment->getUser()->getUuid(),
             'post__uuid' => $comment->getPost()->getUuid(),
             'text' => $comment->getText()
         ]);
+
+        $this->logger->info("Comment saved: $uuid");
     }
 
     /**
@@ -75,9 +80,10 @@ class SqliteCommentsRepository implements CommentsRepositoryInterface
 
 
         if ($result === false || $resultForUserComment === false) {
-            throw new CommentNotFoundException(
+            $this->logger->warning(
                 "Cannot get comment: $uuid"
             );
+            throw new CommentNotFoundException("Cannot get comment: $uuid");
         }
         $userComment = new User(
             new UUID($resultForUserComment['user_uuid_comment']),

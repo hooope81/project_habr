@@ -16,13 +16,15 @@ use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\Response;
 use GeekBrains\LevelTwo\Http\SuccessResponse;
 use PDOException;
+use Psr\Log\LoggerInterface;
 
 class CreateLike implements ActionInterface
 {
     public function __construct(
         private PostsRepositoryInterface $postsRepository,
         private UsersRepositoryInterface $usersRepository,
-        private LikesRepositoryInterface $likesRepository
+        private LikesRepositoryInterface $likesRepository,
+        private LoggerInterface $logger
     ){
     }
 
@@ -31,24 +33,36 @@ class CreateLike implements ActionInterface
         try {
             $userUuid = new UUID($request->query('user_uuid'));
         } catch (HttpException | InvalidArgumentException $e) {
+            $this->logger->warning(
+                "Cannot get user_uuid"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
         try {
             $user = $this->usersRepository->get($userUuid);
         } catch (PDOException $e) {
+            $this->logger->warning(
+                "Cannot get user"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
         try {
             $postUuid = new UUID($request->query('post_uuid'));
         } catch (HttpException | InvalidArgumentException $e) {
+            $this->logger->warning(
+                "Cannot get post_uuid"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
         try {
             $post = $this->postsRepository->get($postUuid);
         } catch (PDOException $e) {
+            $this->logger->warning(
+                "Cannot get post"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
@@ -61,16 +75,23 @@ class CreateLike implements ActionInterface
                 $user
             );
         } catch (PDOException $e) {
+            $this->logger->warning(
+                "Cannot create a like"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
         try {
             $this->likesRepository->checkLike($userUuid, $postUuid);
         } catch (PDOException $e){
+            $this->logger->warning(
+                "The like has already been set"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
         $this->likesRepository->save($like);
+        $this->logger->info("Comment saved: $newLikeUuid");
         return  new SuccessResponse([
             'uuid' => (string) $newLikeUuid
         ]);

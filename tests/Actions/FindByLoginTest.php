@@ -2,6 +2,7 @@
 
 namespace Actions;
 
+use GeekBrains\Blog\UnitTests\DummyLogger;
 use GeekBrains\LevelTwo\Blog\Exceptions\UserNotFoundException;
 use GeekBrains\LevelTwo\Blog\Name;
 use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\UsersRepositoryInterface;
@@ -23,7 +24,7 @@ class FindByLoginTest extends TestCase
     {
         $request = new Request([], [], '');
         $usersRepository = $this->usersRepository([]);
-        $action = new FindByLogin($usersRepository);
+        $action = new FindByLogin($usersRepository, new DummyLogger());
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
@@ -40,7 +41,7 @@ class FindByLoginTest extends TestCase
     {
         $request = new Request(['login' => 'Ivan07'], [], '');
         $usersRepository = $this->usersRepository([]);
-        $action = new FindByLogin($usersRepository);
+        $action = new FindByLogin($usersRepository, new DummyLogger());
         $response = $action->handle($request);
 
         $this->assertInstanceOf(ErrorResponse::class, $response);
@@ -63,7 +64,7 @@ class FindByLoginTest extends TestCase
                 'Ivan07'
             )
         ]);
-        $action = new FindByLogin($usersRepository);
+        $action = new FindByLogin($usersRepository, new DummyLogger());
         $response = $action->handle($request);
 
         $this->assertInstanceOf(SuccessResponse::class, $response);

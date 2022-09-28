@@ -14,14 +14,17 @@ use GeekBrains\LevelTwo\Blog\{Command\Arguments,
     Like,
     UUID};
 use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\SqliteUsersRepository;
+use Psr\Log\LoggerInterface;
 
 $container = require __DIR__ . '/bootstrap.php';
 
 $command = $container->get(CreateUserCommand::class);
 
+$logger = $container->get(LoggerInterface::class);
+
 try {
     $command->handle(Arguments::fromArgv($argv));
 } catch (AppException $e) {
-    echo "{$e->getMessage()}\n";
+    $logger->error($e->getMessage(), ['exception' => $e]);
 }
 

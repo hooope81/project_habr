@@ -11,11 +11,13 @@ use GeekBrains\LevelTwo\Blog\Post;
 use GeekBrains\LevelTwo\Blog\User;
 use GeekBrains\LevelTwo\Blog\UUID;
 use \PDO;
+use Psr\Log\LoggerInterface;
 
 class SqliteLikesRepository implements LikesRepositoryInterface
 {
     public function __construct(
-        private PDO $connection
+        private PDO $connection,
+        private LoggerInterface $logger
     ){
     }
 
@@ -25,11 +27,13 @@ class SqliteLikesRepository implements LikesRepositoryInterface
             'INSERT INTO likes (uuid, uuid_post, uuid_user)
                 VALUES (:uuid, :uuid_post, :uuid_user)'
         );
+        $uuid = $like->getUuid();
         $statement->execute([
-            'uuid' => $like->getUuid(),
+            'uuid' => $uuid,
             'uuid_post' => $like->getPost()->getUuid(),
             'uuid_user' => $like->getUser()->getUuid()
         ]);
+        $this->logger->info("Like saved: $uuid");
     }
 
     /**
@@ -75,9 +79,10 @@ class SqliteLikesRepository implements LikesRepositoryInterface
 
 
         if ($result === false || $resultForUserLike === false) {
-            throw new LikeNotFoundException(
+            $this->logger->warning(
                 "Cannot get likes for the post: $uuid_post"
             );
+            throw new LikeNotFoundException("Cannot get likes for the post: $uuid_post");
         }
         $likesPost = [];
 

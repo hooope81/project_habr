@@ -10,11 +10,13 @@ use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\Response;
 use GeekBrains\LevelTwo\Http\SuccessResponse;
 use PDOException;
+use Psr\Log\LoggerInterface;
 
 class DeletePost implements ActionInterface
 {
     public function __construct(
         private PostsRepositoryInterface $postsRepository,
+        private LoggerInterface $logger
 
     ) {
     }
@@ -23,13 +25,20 @@ class DeletePost implements ActionInterface
         try {
             $uuid = $request->query('uuid');
         } catch (PDOException $e) {
+            $this->logger->warning(
+                "Cannot get uuid_post"
+            );
             return new ErrorResponse($e->getMessage());
         }
         try {
             $this->postsRepository->delete($uuid);
         } catch (PDOException $e) {
+            $this->logger->warning(
+                "Cannot delete the post"
+            );
             return new ErrorResponse($e->getMessage());
         }
+        $this->logger->info("Post deleted: $uuid");
         return new SuccessResponse([
             'uuid' => $uuid . 'is delete'
         ]);

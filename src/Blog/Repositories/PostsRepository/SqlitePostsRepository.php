@@ -9,11 +9,13 @@ use GeekBrains\LevelTwo\Blog\Post;
 use GeekBrains\LevelTwo\Blog\User;
 use GeekBrains\LevelTwo\Blog\UUID;
 use \PDO;
+use Psr\Log\LoggerInterface;
 
 class SqlitePostsRepository implements PostsRepositoryInterface
 {
     public function __construct(
-        private PDO $connection
+        private PDO $connection,
+        private LoggerInterface $logger
     ){
     }
 
@@ -23,12 +25,14 @@ class SqlitePostsRepository implements PostsRepositoryInterface
             'INSERT INTO posts (uuid, author__uuid, title, text) 
                 VALUES (:uuid, :author__uuid, :title, :text)'
         );
+        $uuid = $post->getUuid();
         $statement->execute([
-            'uuid' => $post->getUuid(),
+            'uuid' => $uuid,
             'author__uuid' => $post->getUser()->getUuid(),
             'title' => $post->getTitle(),
             'text' => $post->getText()
         ]);
+        $this->logger->info("Post saved: $uuid");
     }
 
     /**
@@ -56,9 +60,10 @@ class SqlitePostsRepository implements PostsRepositoryInterface
         $result = $statement->fetch(PDO::FETCH_ASSOC);
 
         if ($result === false) {
-            throw new PostNotFoundException(
+            $this->logger->warning(
                 "Cannot get post: $uuid"
             );
+            throw new PostNotFoundException("Cannot get post: $uuid");
         }
         $user = new User(
             new UUID($result['user_uuid']),
