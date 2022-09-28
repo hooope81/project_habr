@@ -17,6 +17,7 @@ use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\Response;
 use GeekBrains\LevelTwo\Http\SuccessResponse;
 use PDOException;
+use Psr\Log\LoggerInterface;
 
 class CreateCommit implements ActionInterface
 {
@@ -25,7 +26,8 @@ class CreateCommit implements ActionInterface
 
         private UsersRepositoryInterface $usersRepository,
         private PostsRepositoryInterface $postsRepository,
-        private CommentsRepositoryInterface $commentsRepository
+        private CommentsRepositoryInterface $commentsRepository,
+        private LoggerInterface $logger
     ) {
     }
 
@@ -34,24 +36,36 @@ class CreateCommit implements ActionInterface
         try {
             $authorUuid = new UUID($request->jsonBodyField('author_uuid'));
         } catch (HttpException | InvalidArgumentException $e) {
+            $this->logger->warning(
+                "Cannot get author_uuid"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
         try {
             $user = $this->usersRepository->get($authorUuid);
         } catch (PDOException $e) {
+            $this->logger->warning(
+                "Cannot get author"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
         try {
             $postUuid = new UUID($request->jsonBodyField('post_uuid'));
         } catch (HttpException | InvalidArgumentException $e) {
+            $this->logger->warning(
+                "Cannot get post_uuid"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
         try {
             $post = $this->postsRepository->get($postUuid);
         } catch (PDOException $e) {
+            $this->logger->warning(
+                "Cannot get post"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
@@ -65,10 +79,14 @@ class CreateCommit implements ActionInterface
                 $request->jsonBodyField('text')
             );
         } catch (HttpException $e) {
+            $this->logger->warning(
+                "Cannot create a comment"
+            );
             return new ErrorResponse($e->getMessage());
         }
 
         $this->commentsRepository->save($comment);
+        $this->logger->info("Comment saved: $newCommentUuid");
 
         return new SuccessResponse([
             'uuid' => (string) $newCommentUuid

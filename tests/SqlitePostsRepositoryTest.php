@@ -2,6 +2,7 @@
 
 namespace GeekBrains\LevelTwo;
 
+use GeekBrains\Blog\UnitTests\DummyLogger;
 use GeekBrains\LevelTwo\Blog\Name;
 use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\SqliteUsersRepository;
 use GeekBrains\LevelTwo\Blog\{Exceptions\InvalidArgumentException,
@@ -18,16 +19,17 @@ class SqlitePostsRepositoryTest extends TestCase
 {
     public function testItThrowsAnExceptionWhenPostNotFound(): void
     {
-        $connectionStub = $this->createStub(PDO::class);
-        $statementStub = $this->createMock(PDOStatement::class);
+        $connectionMock = $this->createStub(PDO::class);
+        $statementStub = $this->createStub(PDOStatement::class);
 
         $statementStub->method('fetch')->willReturn(false);
-        $connectionStub->method('prepare')->willReturn($statementStub);
+        $connectionMock->method('prepare')->willReturn($statementStub);
 
-        $repository = new SqlitePostsRepository($connectionStub);
+        $repository = new SqlitePostsRepository($connectionMock, new DummyLogger());
+
+        $this->expectExceptionMessage('Cannot get post: d02eef61-1a06-460f-b859-202b84164734');
         $this->expectException(PostNotFoundException::class);
-        $this->expectExceptionMessage("Cannot get post: 2828a5e4-fd13-4160-9ed9-16fc695a5d07");
-        $repository->get(new UUID('2828a5e4-fd13-4160-9ed9-16fc695a5d07'));
+        $repository->get(new UUID('d02eef61-1a06-460f-b859-202b84164734'));
 
     }
 
@@ -45,7 +47,7 @@ class SqlitePostsRepositoryTest extends TestCase
                 'text' => 'я календарь переверну, и снова третье сентябряяя'
             ]);
         $connectionStub->method('prepare')->willReturn($statementMock);
-        $repository = new SqlitePostsRepository($connectionStub);
+        $repository = new SqlitePostsRepository($connectionStub, new DummyLogger());
         $user = new User(
             new UUID('1c07ad19-0974-40f6-8997-e0466140e4b4'),
             new Name ('Анна', 'Петрова'),
@@ -81,7 +83,7 @@ class SqlitePostsRepositoryTest extends TestCase
         ]);
         $connectionStub->method('prepare')->willReturn($statementMock);
 
-        $postRepository = new SqlitePostsRepository($connectionStub);
+        $postRepository = new SqlitePostsRepository($connectionStub, new DummyLogger());
         $post = $postRepository->get(new UUID('2828a5e4-fd13-4160-9ed9-16fc695a5d07'));
         $this->assertSame('2828a5e4-fd13-4160-9ed9-16fc695a5d07', (string) $post->getUuid());
 
