@@ -49,7 +49,8 @@ class SqliteCommentsRepositoryTest extends TestCase
         $user = new User(
             new UUID('1c07ad19-0974-40f6-8997-e0466140e4b4'),
             new Name ('Анна', 'Петрова'),
-            'anna05'
+            'anna05',
+            'ea23f38f7597722815ff13a88cbdfff3d988f8f9c3698ab7af37ab8fbe2dfccd'
         );
         $post = new Post(
             new UUID('2828a5e4-fd13-4160-9ed9-16fc695a5d07'),
@@ -85,7 +86,9 @@ class SqliteCommentsRepositoryTest extends TestCase
             'user_uuid_comment' => '1c07ad19-0974-40f6-8997-e0466140e4b4',
             'user_first_name_comment' => 'Anna',
             'user_last_name_comment' => 'Petrova',
-            'user_login_comment' => 'An8'
+            'user_login_comment' => 'An8',
+            'password' => 'ea23f38f7597722815ff13a88cbdfff3d988f8f9c3698ab7af37ab8fbe2dfccd',
+            'user_password_comment' => '7a23f38f7597722815ff13a88cbdfff3d988f8f9c3698ab7af37ab8fbe2dfccd'
         ]);
         $connectionStub->method('prepare')->willReturn($statementMock);
         $commentRepository = new SqliteCommentsRepository($connectionStub, new DummyLogger());

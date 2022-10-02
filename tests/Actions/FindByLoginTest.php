@@ -61,7 +61,8 @@ class FindByLoginTest extends TestCase
             new User(
                 UUID::random(),
                 new Name('Ivan', 'Nikitin'),
-                'Ivan07'
+                'Ivan07',
+                'ea23f38f7597722815ff13a88cbdfff3d988f8f9c3698ab7af37ab8fbe2dfccd'
             )
         ]);
         $action = new FindByLogin($usersRepository, new DummyLogger());

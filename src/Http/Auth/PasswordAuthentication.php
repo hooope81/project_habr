@@ -7,11 +7,9 @@ use GeekBrains\LevelTwo\Blog\Exceptions\HttpException;
 use GeekBrains\LevelTwo\Blog\Exceptions\UserNotFoundException;
 use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\UsersRepositoryInterface;
 use GeekBrains\LevelTwo\Blog\User;
-use GeekBrains\LevelTwo\Blog\UUID;
 use GeekBrains\LevelTwo\Http\Request;
-use Psr\SimpleCache\InvalidArgumentException;
 
-class JsonBodyUuidIdentification implements IdentificationInterface
+class PasswordAuthentication implements PasswordAuthenticationInterface
 {
     public function __construct(
         private UsersRepositoryInterface $usersRepository
@@ -20,21 +18,31 @@ class JsonBodyUuidIdentification implements IdentificationInterface
 
     /**
      * @throws AuthException
-     * @throws \GeekBrains\LevelTwo\Blog\Exceptions\InvalidArgumentException
      * @throws \JsonException
      */
     public function user(Request $request): User
     {
         try {
-            $userUuid = new UUID($request->jsonBodyField('user_uuid'));
-        } catch (HttpException | InvalidArgumentException $e) {
+            $login = $request->jsonBodyField('login');
+        } catch (HttpException $e) {
+            throw new AuthException($e->getMessage());
+        }
+        try {
+            $user = $this->usersRepository->getByLogin($login);
+        } catch (UserNotFoundException $e) {
             throw new AuthException($e->getMessage());
         }
 
         try {
-            return $this->usersRepository->get($userUuid);
-        } catch (UserNotFoundException $e) {
+            $password = $request->jsonBodyField('password');
+        } catch (HttpException $e) {
             throw new AuthException($e->getMessage());
         }
+
+        if (!$user->checkPassword($password)) {
+            throw new AuthException('Wrong password');
+        }
+
+        return $user;
     }
 }
