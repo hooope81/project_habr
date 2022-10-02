@@ -13,7 +13,7 @@ use GeekBrains\LevelTwo\Blog\UUID;
 use \PDO;
 use Psr\Log\LoggerInterface;
 
-class SqliteLikesRepository implements LikesRepositoryInterface
+class SqliteLikesPostRepository implements LikesPostRepositoryInterface
 {
     public function __construct(
         private PDO $connection,
@@ -52,10 +52,11 @@ class SqliteLikesRepository implements LikesRepositoryInterface
                     users.uuid AS user_uuid,
                     users.login, 
                     users.first_name, 
-                    users.last_name
+                    users.last_name,
+                    users.password
             FROM likes
             JOIN posts ON posts.uuid = likes.uuid_post
-            JOIN users ON users.uuid = posts.author__uuid
+            JOIN users ON users.uuid = likes.uuid_user
             WHERE likes.uuid_post = :uuid_post'
         );
         $statement->execute([
@@ -63,22 +64,33 @@ class SqliteLikesRepository implements LikesRepositoryInterface
         ]);
         $result = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-        $statementForUserLike = $this->connection->query(
-            'SELECT users.uuid AS user_uuid_like, 
-                    users.login AS user_login_like, 
-                    users.first_name AS user_first_name_like, 
-                    users.last_name AS user_last_name_like
+        $statementForUserPost = $this->connection->prepare(
+            'SELECT users.uuid AS user_uuid_post, 
+                    users.login, 
+                    users.first_name, 
+                    users.last_name,
+                    users.password
             FROM users
-            JOIN likes ON users.uuid = likes.uuid_user
-            WHERE likes.uuid_post = :uuid_post'
+            JOIN posts ON users.uuid = posts.author__uuid
+            WHERE posts.uuid = :uuid_post'
         );
-        $statementForUserLike->execute([
+        $statementForUserPost->execute([
             'uuid_post' => (string) $uuid_post
         ]);
-        $resultForUserLike = $statementForUserLike->fetchAll(PDO::FETCH_ASSOC);
+        $resultForUserPost = $statementForUserPost->fetch(PDO::FETCH_ASSOC);
+
+        $author = new User (
+            new UUID($resultForUserPost['user_uuid_post']),
+            new Name(
+                $resultForUserPost['first_name'],
+                $resultForUserPost['last_name'],
+            ),
+            $resultForUserPost['login'],
+            $resultForUserPost['password'],
+        );
 
 
-        if ($result === false || $resultForUserLike === false) {
+        if ($result === false || $resultForUserPost === false) {
             $this->logger->warning(
                 "Cannot get likes for the post: $uuid_post"
             );
@@ -88,38 +100,25 @@ class SqliteLikesRepository implements LikesRepositoryInterface
 
         foreach ($result as $value) {
 
-            $userLike = '';
-            foreach ($resultForUserLike as $item) {
-                if ($item['user_uuid_like'] === $value['uuid_user']) {
-                    $userLike = new User(
-                        new UUID($item['user_uuid_like']),
-                        new Name(
-                            $item['user_first_name_like'],
-                            $item['user_last_name_like']
-                        ),
-                        $item['user_login_like']
-                    );
-                }
-            }
-
-            $userPost = new User(
-                new UUID($value['user_uuid']),
+            $user = new User(
+                new UUID($value['uuid_user']),
                 new Name(
                     $value['first_name'],
                     $value['last_name']
                 ),
-                $value['login']
+                $value['login'],
+                $value['password']
             );
             $post = new Post(
                 $uuid_post,
-                $userPost,
+                $author,
                 $value['title'],
                 $value['post_text']
             );
             $like = new Like(
                 new UUID($value['likes_uuid']),
                 $post,
-                $userLike,
+                $user,
             );
             $likesPost[] = $like;
         }

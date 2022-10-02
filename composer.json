@@ -21,7 +21,7 @@
         "symfony/polyfill-uuid": "^1.26",
         "ext-pdo": "*",
         "cviebrock/eloquent-sluggable": "^9.0",
-      "ext-http": "*",
+
         "psr/container": "^2.0",
         "monolog/monolog": "^3.2",
         "vlucas/phpdotenv": "^5.4"

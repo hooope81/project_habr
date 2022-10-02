@@ -35,15 +35,18 @@ class CreateUserCommand
             return;
         }
 
-        $uuid = UUID::random();
+        $user = User::createFrom(
+            $login,
+            $arguments->get('password'),
+            new Name(
+                $arguments->get('first_name'),
+                $arguments->get('last_name')
+            )
+        );
 
-        $this->usersRepository->save(new User(
-            $uuid,
-            new Name ($arguments->get('first_name'), $arguments->get('last_name')),
-            $login
-        ));
+        $this->usersRepository->save($user);
 
-        $this->logger->info("User created: $uuid");
+        $this->logger->info("User created: " . $user->getUuid());
     }
 
 

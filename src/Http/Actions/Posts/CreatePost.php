@@ -11,7 +11,8 @@ use GeekBrains\LevelTwo\Blog\Repositories\PostsRepository\PostsRepositoryInterfa
 use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\UsersRepositoryInterface;
 use GeekBrains\LevelTwo\Blog\UUID;
 use GeekBrains\LevelTwo\Http\Actions\ActionInterface;
-use GeekBrains\LevelTwo\Http\Auth\IdentificationInterface;
+use GeekBrains\LevelTwo\Http\Auth\AuthenticationInterface;
+use GeekBrains\LevelTwo\Http\Auth\TokenAuthenticationInterface;
 use GeekBrains\LevelTwo\Http\ErrorResponse;
 use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\Response;
@@ -23,7 +24,7 @@ class CreatePost implements ActionInterface
 {
     public function __construct(
         private PostsRepositoryInterface $postsRepository,
-        private IdentificationInterface $identification,
+        private TokenAuthenticationInterface $authentication,
         private LoggerInterface $logger
     ) {
     }
@@ -31,7 +32,7 @@ class CreatePost implements ActionInterface
     public function handle(Request $request): Response
     {
         try {
-            $user = $this->identification->user($request);
+            $user = $this->authentication->user($request);
         } catch (AuthException $e) {
             $this->logger->warning(
                 "Cannot get user"

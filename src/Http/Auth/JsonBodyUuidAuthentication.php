@@ -11,7 +11,7 @@ use GeekBrains\LevelTwo\Blog\UUID;
 use GeekBrains\LevelTwo\Http\Request;
 use Psr\SimpleCache\InvalidArgumentException;
 
-class JsonBodyUsernameIdentification implements IdentificationInterface
+class JsonBodyUuidAuthentication implements AuthenticationInterface
 {
     public function __construct(
         private UsersRepositoryInterface $usersRepository
@@ -20,18 +20,19 @@ class JsonBodyUsernameIdentification implements IdentificationInterface
 
     /**
      * @throws AuthException
+     * @throws \GeekBrains\LevelTwo\Blog\Exceptions\InvalidArgumentException
      * @throws \JsonException
      */
     public function user(Request $request): User
     {
         try {
-            $login = $request->jsonBodyField('login');
-        } catch (HttpException $e) {
+            $userUuid = new UUID($request->jsonBodyField('user_uuid'));
+        } catch (HttpException | InvalidArgumentException $e) {
             throw new AuthException($e->getMessage());
         }
 
         try {
-            return $this->usersRepository->getByLogin($login);
+            return $this->usersRepository->get($userUuid);
         } catch (UserNotFoundException $e) {
             throw new AuthException($e->getMessage());
         }

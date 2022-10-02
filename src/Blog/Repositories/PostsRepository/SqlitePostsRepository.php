@@ -48,7 +48,8 @@ class SqlitePostsRepository implements PostsRepositoryInterface
                     users.uuid AS user_uuid, 
                     users.login, 
                     users.first_name, 
-                    users.last_name
+                    users.last_name,
+                    users.password
             FROM posts
             JOIN users ON users.uuid = posts.author__uuid
             WHERE posts.uuid = :uuid'
@@ -68,7 +69,8 @@ class SqlitePostsRepository implements PostsRepositoryInterface
         $user = new User(
             new UUID($result['user_uuid']),
             new Name($result['first_name'], $result['last_name']),
-            $result['login']
+            $result['login'],
+            $result['password']
         );
 
         return new Post(
