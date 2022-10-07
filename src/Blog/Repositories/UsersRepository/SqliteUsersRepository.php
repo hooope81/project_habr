@@ -17,14 +17,28 @@ class SqliteUsersRepository implements UsersRepositoryInterface
         private LoggerInterface $logger
 
     ) {
-
     }
 
     public function save(User $user):void
     {
         $statement = $this->connection->prepare(
-            'INSERT INTO users (first_name, last_name, uuid, login) 
-                VALUES (:first_name, :last_name, :uuid, :login)'
+            'INSERT INTO users (
+                   first_name, 
+                   last_name, 
+                   uuid, 
+                   login, 
+                   password
+                   ) 
+                VALUES (
+                        :first_name, 
+                        :last_name, 
+                        :uuid, 
+                        :login, 
+                        :password
+                        )
+                ON CONFLICT (uuid) DO UPDATE SET 
+                    first_name = :first_name,
+                    last_name = :last_name'
         );
         $uuid = $user->getUuid();
         $statement->execute([
@@ -32,7 +46,8 @@ class SqliteUsersRepository implements UsersRepositoryInterface
                 'first_name' => $user->getName()->getFirstName(),
                 'last_name' => $user->getName()->getLastName(),
                 'uuid' => $uuid,
-                'login' => $user->getLogin()
+                'login' => $user->getLogin(),
+                'password' => $user->hashedPassword()
         ]);
         $this->logger->info("User saved: $uuid");
     }
@@ -92,7 +107,8 @@ class SqliteUsersRepository implements UsersRepositoryInterface
         return new User(
             $uuid,
             new Name($result['first_name'], $result['last_name']),
-            $result['login']
+            $result['login'],
+            $result['password']
         );
     }
 

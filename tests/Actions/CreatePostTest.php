@@ -18,9 +18,10 @@ use GeekBrains\LevelTwo\Blog\User;
 use GeekBrains\LevelTwo\Blog\Post;
 use GeekBrains\LevelTwo\Blog\UUID;
 use GeekBrains\LevelTwo\Http\Actions\Posts\CreatePost;
-use GeekBrains\LevelTwo\Http\Auth\IdentificationInterface;
-use GeekBrains\LevelTwo\Http\Auth\JsonBodyUsernameIdentification;
-use GeekBrains\LevelTwo\Http\Auth\JsonBodyUuidIdentification;
+use GeekBrains\LevelTwo\Http\Auth\AuthenticationInterface;
+use GeekBrains\LevelTwo\Http\Auth\JsonBodyUsernameAuthentication;
+use GeekBrains\LevelTwo\Http\Auth\JsonBodyUuidAuthentication;
+use GeekBrains\LevelTwo\Http\Auth\TokenAuthenticationInterface;
 use GeekBrains\LevelTwo\Http\ErrorResponse;
 use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\SuccessResponse;
@@ -38,14 +39,15 @@ class CreatePostTest extends TestCase
             '{"author_uuid":"123e4567-e89b-12d3-a456-426614174001","title":"September","text":"xo-xo-xo"}');
 
         $postRepository = $this->createStub(PostsRepositoryInterface::class);
-        $identification = $this->createStub(JsonBodyUsernameIdentification::class);
+        $identification = $this->createStub(TokenAuthenticationInterface::class);
         $identification
             ->method('user')
             ->willReturn(
                 new User(
                     new UUID("123e4567-e89b-12d3-a456-426614174001"),
                     new Name('Ivan', 'Nikitin'),
-                    'Ivan07'
+                    'Ivan07',
+                    'ea23f38f7597722815ff13a88cbdfff3d988f8f9c3698ab7af37ab8fbe2dfccd'
                 )
             );
         $action = new CreatePost($postRepository, $identification, new DummyLogger());
@@ -62,7 +64,7 @@ class CreatePostTest extends TestCase
     {
         $request = new Request([], [], '{"author_uuid":"10373537-0805-4d7a-830e-22b481b4859c","title":"title","text":"text"}');
         $postRepository = $this->createStub(PostsRepositoryInterface::class);
-        $identification = $this->createStub(JsonBodyUsernameIdentification::class);
+        $identification = $this->createStub(TokenAuthenticationInterface::class);
         $identification
             ->method('user')
             ->willThrowException(
@@ -88,7 +90,7 @@ class CreatePostTest extends TestCase
         $request = new Request([], [],
             '{"author_uuid":"123","title":"September","text":"xo-xo-xo"}');
         $postRepository = $this->createStub(PostsRepositoryInterface::class);
-        $identification = $this->createStub(JsonBodyUsernameIdentification::class);
+        $identification = $this->createStub(TokenAuthenticationInterface::class);
         $identification
             ->method('user')
             ->willThrowException(
@@ -112,14 +114,15 @@ class CreatePostTest extends TestCase
             '{"author_uuid":"123e4567-e89b-12d3-a456-426614174001","title":"September"}');
 
         $postRepository = $this->createStub(PostsRepositoryInterface::class);
-        $identification = $this->createStub(JsonBodyUsernameIdentification::class);
+        $identification = $this->createStub(TokenAuthenticationInterface::class);
         $identification
             ->method('user')
             ->willReturn(
                 new User(
                     new UUID("123e4567-e89b-12d3-a456-426614174001"),
                     new Name('Ivan', 'Nikitin'),
-                    'Ivan07'
+                    'Ivan07',
+                    'ea23f38f7597722815ff13a88cbdfff3d988f8f9c3698ab7af37ab8fbe2dfccd'
                 )
             );
         $action = new CreatePost(

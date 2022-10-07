@@ -6,11 +6,12 @@ use GeekBrains\LevelTwo\Blog\Exceptions\HttpException;
 use GeekBrains\LevelTwo\Blog\Exceptions\InvalidArgumentException;
 use GeekBrains\LevelTwo\Blog\Exceptions\LikeIsAlreadyBeenCreated;
 use GeekBrains\LevelTwo\Blog\Like;
-use GeekBrains\LevelTwo\Blog\Repositories\LikesRepository\LikesRepositoryInterface;
+use GeekBrains\LevelTwo\Blog\Repositories\LikesRepository\LikesPostRepositoryInterface;
 use GeekBrains\LevelTwo\Blog\Repositories\PostsRepository\PostsRepositoryInterface;
 use GeekBrains\LevelTwo\Blog\Repositories\UsersRepository\UsersRepositoryInterface;
 use GeekBrains\LevelTwo\Blog\UUID;
 use GeekBrains\LevelTwo\Http\Actions\ActionInterface;
+use GeekBrains\LevelTwo\Http\Auth\TokenAuthenticationInterface;
 use GeekBrains\LevelTwo\Http\ErrorResponse;
 use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\Response;
@@ -18,29 +19,20 @@ use GeekBrains\LevelTwo\Http\SuccessResponse;
 use PDOException;
 use Psr\Log\LoggerInterface;
 
-class CreateLike implements ActionInterface
+class CreateLikePost implements ActionInterface
 {
     public function __construct(
-        private PostsRepositoryInterface $postsRepository,
-        private UsersRepositoryInterface $usersRepository,
-        private LikesRepositoryInterface $likesRepository,
-        private LoggerInterface $logger
+        private PostsRepositoryInterface     $postsRepository,
+        private TokenAuthenticationInterface $authentication,
+        private LikesPostRepositoryInterface $likesRepository,
+        private LoggerInterface              $logger
     ){
     }
 
     public function handle(Request $request): Response
     {
         try {
-            $userUuid = new UUID($request->query('user_uuid'));
-        } catch (HttpException | InvalidArgumentException $e) {
-            $this->logger->warning(
-                "Cannot get user_uuid"
-            );
-            return new ErrorResponse($e->getMessage());
-        }
-
-        try {
-            $user = $this->usersRepository->get($userUuid);
+            $user = $this->authentication->user($request);
         } catch (PDOException $e) {
             $this->logger->warning(
                 "Cannot get user"
@@ -82,7 +74,7 @@ class CreateLike implements ActionInterface
         }
 
         try {
-            $this->likesRepository->checkLike($userUuid, $postUuid);
+            $this->likesRepository->checkLike($user->getUuid(), $postUuid);
         } catch (PDOException $e){
             $this->logger->warning(
                 "The like has already been set"

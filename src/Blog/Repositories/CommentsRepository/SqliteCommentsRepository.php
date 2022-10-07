@@ -53,7 +53,8 @@ class SqliteCommentsRepository implements CommentsRepositoryInterface
                     users.uuid AS user_uuid, 
                     users.login, 
                     users.first_name, 
-                    users.last_name
+                    users.last_name,
+                    users.password
             FROM comments
             JOIN posts ON posts.uuid = comments.post__uuid
             JOIN users ON users.uuid = posts.author__uuid
@@ -68,7 +69,8 @@ class SqliteCommentsRepository implements CommentsRepositoryInterface
             'SELECT users.uuid AS user_uuid_comment, 
                     users.login AS user_login_comment, 
                     users.first_name AS user_first_name_comment, 
-                    users.last_name AS user_last_name_comment
+                    users.last_name AS user_last_name_comment,
+                    users.password AS user_password_comment
             FROM comments
             JOIN users ON users.uuid = comments.author__uuid
             WHERE comments.uuid = :uuid'
@@ -90,12 +92,14 @@ class SqliteCommentsRepository implements CommentsRepositoryInterface
             new Name(
                 $resultForUserComment['user_first_name_comment'],
                 $resultForUserComment['user_last_name_comment']),
-            $resultForUserComment['user_login_comment']
+            $resultForUserComment['user_login_comment'],
+            $resultForUserComment['user_password_comment']
         );
         $userPost = new User(
             new UUID($result['user_uuid']),
             new Name($result['first_name'], $result['last_name']),
-            $result['login']
+            $result['login'],
+            $result['password']
         );
         $post = new Post(
             new UUID($result['post_uuid']),
