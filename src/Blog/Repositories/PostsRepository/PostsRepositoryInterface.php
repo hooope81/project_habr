@@ -11,5 +11,5 @@ interface PostsRepositoryInterface
 
     public function get(UUID $uuid): Post;
 
-    public function delete(string $uuid):void;
+    public function delete(UUID $uuid):void;
 }

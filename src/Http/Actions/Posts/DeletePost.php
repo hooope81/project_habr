@@ -2,9 +2,12 @@
 
 namespace GeekBrains\LevelTwo\Http\Actions\Posts;
 
+use GeekBrains\LevelTwo\Blog\Exceptions\AuthException;
 use GeekBrains\LevelTwo\Blog\Exceptions\HttpException;
 use GeekBrains\LevelTwo\Blog\Repositories\PostsRepository\PostsRepositoryInterface;
+use GeekBrains\LevelTwo\Blog\UUID;
 use GeekBrains\LevelTwo\Http\Actions\ActionInterface;
+use GeekBrains\LevelTwo\Http\Auth\TokenAuthenticationInterface;
 use GeekBrains\LevelTwo\Http\ErrorResponse;
 use GeekBrains\LevelTwo\Http\Request;
 use GeekBrains\LevelTwo\Http\Response;
@@ -16,6 +19,7 @@ class DeletePost implements ActionInterface
 {
     public function __construct(
         private PostsRepositoryInterface $postsRepository,
+        private TokenAuthenticationInterface $authentication,
         private LoggerInterface $logger
 
     ) {
@@ -23,7 +27,12 @@ class DeletePost implements ActionInterface
     public function handle(Request $request): Response
     {
         try {
-            $uuid = $request->query('uuid');
+            $this->authentication->user($request);
+        } catch (AuthException $e) {
+            return new ErrorResponse($e->getMessage());
+        }
+        try {
+            $uuid = new UUID($request->query('uuid'));
         } catch (PDOException $e) {
             $this->logger->warning(
                 "Cannot get uuid_post"

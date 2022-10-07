@@ -1,6 +1,10 @@
 <?php
 
 use Dotenv\Dotenv;
+use Faker\Provider\Lorem;
+use Faker\Provider\ru_RU\Internet;
+use Faker\Provider\ru_RU\Person;
+use Faker\Provider\ru_RU\Text;
 use GeekBrains\LevelTwo\Blog\Container\DIContainer;
 use GeekBrains\LevelTwo\Blog\Repositories\AuthTokensRepository\AuthTokensRepositoryInterface;
 use GeekBrains\LevelTwo\Blog\Repositories\AuthTokensRepository\SqliteAuthTokenRepository;
@@ -111,8 +115,15 @@ $container->bind(
     $logger
 );
 
+$faker = new \Faker\Generator();
+$faker->addProvider(new Person($faker));
+$faker->addProvider(new Text($faker));
+$faker->addProvider(new Internet($faker));
+$faker->addProvider(new Lorem($faker));
 
-
-
+$container->bind(
+    \Faker\Generator::class,
+    $faker
+);
 
 return $container;
