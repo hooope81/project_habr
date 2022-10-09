@@ -35,19 +35,22 @@ class PopulateDB extends Command
                 'users-number',
                 'u',
                 InputOption::VALUE_OPTIONAL,
-                'Redefine the number of users being created'
+                'Redefine the number of users being created',
+                0
             )
              ->addOption(
                 'posts-number',
                 'p',
                 InputOption::VALUE_OPTIONAL,
-                'Redefine the number of posts being created each user'
+                'Redefine the number of posts being created each user',
+                0
             )
             ->addOption(
                 'comments-number',
                 'c',
                 InputOption::VALUE_OPTIONAL,
-                'Redefine the number of comments being created each user each post'
+                'Redefine the number of comments being created each user each post',
+                0
     );
     }
 
@@ -57,9 +60,9 @@ class PopulateDB extends Command
     ): int {
         $users = [];
         $posts = [];
-        $numberUsers = $input->getOption('users-number') ?? 0;
-        $numberPosts = $input->getOption('posts-number') ?? 0;
-        $numberComments = $input->getOption('comments-number') ?? 0;
+        $numberUsers = $input->getOption('users-number');
+        $numberPosts = $input->getOption('posts-number');
+        $numberComments = $input->getOption('comments-number');
         for ($i = 0; $i < $numberUsers; $i++) {
             $user = $this->createFakeUser();
             $users[] = $user;
